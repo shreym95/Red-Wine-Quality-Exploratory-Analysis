@@ -1,51 +1,67 @@
-Exploratory Data Analysis of Red Wine Dataset by Shrey Marwaha
-========================================================
+---
+title: "Red Wine Exploratory Data Analysis"
+author: "Shrey Marwaha"
+date: "September 20, 2017"
+output: html_document
+---
 
-> **Tip**: You will see quoted sections like this throughout the template to
-help you construct your report. Make sure that you remove these notes before
-you finish and submit your project!
-
-> **Tip**: One of the requirements of this project is that your code follows
-good formatting techniques, including limiting your lines to 80 characters or
-less. If you're using RStudio, go into Preferences \> Code \> Display to set up
-a margin line to help you keep track of this guideline!
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Loading required libraries
 library(ggplot2)
 library(stringr)
-install.packages(ggally, reshape2,dyplr)
-library(ggally)
+library(GGally)
 library(reshape2)
-library(dyplr)
+library(dplyr)
+library(tidyr)
 ```
+
+## Objectives
+
+Through this project, I aim to explore and analyse the Red Wine Data Set, and infer the factors on which the quality of wine depends. I will start by exploring the data to get a feel of the information available and then, if possible, I hope to draw out the correlations between the various vaiables and Wine Quality. Through this, I aim to create a predictive model and check it against a test data.
 
 ```{r echo=FALSE, Load_the_Data}
 # Load the Data
+rdw <- read.csv('wineQualityReds.csv')
 
+# Wrangling the data
+rdw$quality <- factor(rdw$quality, ordered = TRUE)
+#Creating new ordered categorical variable Class
+rdw$class <- factor(ifelse(rdw$quality < 5, 'poor', 
+                              ifelse(rdw$quality < 7, 'normal', 'exceptional')
+                              ))
+
+rdw$class <- ordered(rdw$class, levels = c('poor','normal','exceptional'))
 ```
 
-> **Tip**: Before you create any plots, it is a good idea to provide a short
-introduction into the dataset that you are planning to explore. Replace this
-quoted text with that general information!
+## Structure and summary of the Dataframe
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+str(rdw)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(rdw)
+```
 # Univariate Plots Section
 
-> **Tip**: In this section, you should perform some preliminary exploration of
-your dataset. Run some summaries of the data and create univariate plots to
-understand the structure of the individual variables in your dataset. Don't
-forget to add a comment after each plot or closely-related group of plots!
-There should be multiple code chunks and text sections; the first one below is
-just to help you get started.
+As a start, I see from the above statistics that there are a lot more number of **normal** red wines in the data, than 'poor' and 'exceptional'. Let's have a visual look at this by checking quality factor.
 
 ```{r echo=FALSE, Univariate_Plots}
-
+ggplot(data = rdw, aes(x = quality))+
+  geom_bar(fill = I('#40B0B5'))
 ```
 
-> **Tip**: Make sure that you leave a blank line between the start / end of
-each code block and the end / start of your Markdown text so that it is
-formatted nicely in the knitted text. Note as well that text on consecutive
-lines is treated as a single space. Make sure you have a blank line between
-your paragraphs so that they too are formatted for easy readability.
+That shows it quite clearly, as is mentioned in the Info file. I wonder if wines with quality rating 8 (exceptional) and quality rating 3 (poor) are outliers.
+
+```{r echo=FALSE, message=FALSE}
+# Plotting all variables together, ommitting factor variables
+wine <- gather(rdw, "property", "value", 2:12)
+ggplot(data = wine, aes(x = value))+
+  geom_histogram()+
+  facet_wrap(~property, scales = "free")
+```
+
+From the above initial plots, a lot of interesting things can be seen. Many variables are showing some kind of a relationship which can be of particular interest to us. Let's examine some of these further.
 
 # Univariate Analysis
 
