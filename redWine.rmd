@@ -13,6 +13,7 @@ library(GGally)
 library(reshape2)
 library(dplyr)
 library(tidyr)
+library(gridExtra)
 ```
 
 ## Objectives
@@ -53,15 +54,91 @@ ggplot(data = rdw, aes(x = quality))+
 
 That shows it quite clearly, as is mentioned in the Info file. I wonder if wines with quality rating 8 (exceptional) and quality rating 3 (poor) are outliers.
 
-```{r echo=FALSE, message=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Plotting all variables together, ommitting factor variables
-wine <- gather(rdw, "property", "value", 2:12)
-ggplot(data = wine, aes(x = value))+
-  geom_histogram()+
-  facet_wrap(~property, scales = "free")
+rdw_compiled <- gather(rdw, "variable", "value", 2:12, factor_key = TRUE)
+ggplot(aes(x = value), data = rdw_compiled)+
+  geom_histogram(fill = I('#40B0B5') )+
+  facet_wrap(~variable, scales = "free")
 ```
 
-From the above initial plots, a lot of interesting things can be seen. Many variables are showing some kind of a relationship which can be of particular interest to us. Let's examine some of these further.
+From the above initial plots, a lot of interesting things can be seen. Many variables are showing some kind of a relationship which can be of particular interest to us. Let's examine some of these further. I'll go about doing this category wise, namely: Acidity, Chemicals and Other features.
+
+###Acidity
+
+From the data, we can see that pH, fixed.acidity, volatile.acidity and citric.acid basically correspond to this category. Let's have a look at their distributions, together.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+p1 <- ggplot(data = rdw, aes(x = fixed.acidity))+
+  geom_histogram(fill = '#338C90', binwidth = 0.1)+
+  coord_cartesian(xlim = c(4, 14))
+p2 <- ggplot(data = rdw, aes(x = volatile.acidity))+
+  geom_histogram(fill = '#338C90', binwidth = 0.01)+
+  coord_cartesian(xlim = c(0, 1))
+p3 <- ggplot(data = rdw, aes(x = citric.acid))+
+  geom_histogram(fill = '#338C90', binwidth = 0.01)
+p4 <- ggplot(data = rdw, aes(x = pH))+
+  geom_histogram(fill = '#338C90')
+grid.arrange(p1, p2, p3, p4, ncol = 1)
+```
+
+From the above plots, we can see that fixed.acidity has more of a positively skewed distribution, it probably may be bimodal. The volatile.acidity variable also looks like a skewed distribution, though we may want to look at it further. There isn't much to be infered from the citric.acid plot, and the pH plot has a uniform distribution with most values concentrated between 3.0 and 3.5. That's quite accurate as wines are mildly acidic. The acidity adds to it's crispiness. 
+
+I would like to see some x-axis transformations in citric.acid plot to extract any available information.
+
+```{r echo=FALSE, message=FALSE}
+ggplot(data = rdw, aes(x = citric.acid))+
+  geom_histogram(fill = '#338C90', binwidth = 0.01)+
+  scale_x_sqrt()
+```
+
+After a sqrt tranformation on x-axis, I can see that although there isn't relation visible, but many of the values have zero amount of citric acid in them. This probably depends on the flavor of the wine, and probably affects the quality.
+
+###Chemicals
+Let's check for presence of chemicals such as chlorides, sulphates & sulfur dioxide.
+
+```{r echo=FALSE, message=FALSE}
+c1 <- ggplot(data = rdw, aes(x = chlorides))+
+  geom_histogram(fill = '#47979B')
+c2 <- ggplot(data = rdw, aes(x = sulphates))+
+  geom_histogram(fill = '#47979B')
+
+grid.arrange(c1, c2, ncol = 1)
+```
+
+Both these curves show skewed distribution, and a large number of outliers. It's possible that these abnormal values may distinguish the quality/class of the wine, as presence of long tailed data is visible. 
+
+```{r echo=FALSE, message=FALSE}
+s1 <- ggplot(data = rdw, aes(x = free.sulfur.dioxide))+
+  geom_histogram(fill = '#7EB6B9')+
+  coord_cartesian(xlim = c(0, 60))
+s2 <- ggplot(data = rdw, aes(x = total.sulfur.dioxide))+
+  geom_histogram(fill = '#7EB6B9')+
+  coord_cartesian(xlim = c(0, 200))
+
+grid.arrange(s1, s2, heights = unit(1, 'npc'))
+```
+
+Both these variables show somewhat similar skewness. The free sulphur dioxide amount peaks at two places, first at 7 which is the median, and then around 9-10. Both have a small number of outliers that have been omitted from the visualizations.
+
+###Other Parameters
+
+Let's look at residual sugar, density and alcohol levels.
+
+```{r echo=FALSE, message=FALSE}
+# Residual Sugar 
+o1 <- ggplot(data = rdw, aes(x = residual.sugar))+
+  geom_histogram(fill = '#7eb6b9')
+# Density
+o2 <- ggplot(data = rdw, aes(x = density))+
+  geom_histogram(fill = '#7e99b9')
+#Alcohol
+o3 <- ggplot(data = rdw, aes(x = alcohol))+
+  geom_histogram(fill = '#7eb99f')
+grid.arrange(o1, o2, o3, ncol = 1)
+```
+
+Residual sugar has very high outliers, while the 75th percentile is at 2.60 only. The distribution is positively skewed with median around 2.20. Density seems to be a uniform distribution, which can hence be a deciding factor in quality. Alcohol percentages are mostly positively skewed.
 
 # Univariate Analysis
 
