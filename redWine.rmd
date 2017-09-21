@@ -14,6 +14,7 @@ library(reshape2)
 library(dplyr)
 library(tidyr)
 library(gridExtra)
+library(corrplot)
 ```
 
 ## Objectives
@@ -45,14 +46,17 @@ summary(rdw)
 ```
 # Univariate Plots Section
 
-As a start, I see from the above statistics that there are a lot more number of **normal** red wines in the data, than 'poor' and 'exceptional'. Let's have a visual look at this by checking quality factor.
+As a start, I see from the above statistics that there are a lot more number of **normal** 
+red wines in the data, than 'poor' and 'exceptional'. Let's have a visual look at this by 
+checking quality factor.
 
 ```{r echo=FALSE, Univariate_Plots}
 ggplot(data = rdw, aes(x = quality))+
   geom_bar(fill = I('#40B0B5'))
 ```
 
-That shows it quite clearly, as is mentioned in the Info file. I wonder if wines with quality rating 8 (exceptional) and quality rating 3 (poor) are outliers.
+That shows it quite clearly, as is mentioned in the Info file. I wonder if wines with 
+quality rating 8 (exceptional) and quality rating 3 (poor) are outliers.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Plotting all variables together, ommitting factor variables
@@ -66,7 +70,8 @@ From the above initial plots, a lot of interesting things can be seen. Many vari
 
 ###Acidity
 
-From the data, we can see that pH, fixed.acidity, volatile.acidity and citric.acid basically correspond to this category. Let's have a look at their distributions, together.
+From the data, we can see that pH, fixed.acidity, volatile.acidity and citric.acid 
+basically correspond to this category. Let's have a look at their distributions, together.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 p1 <- ggplot(data = rdw, aes(x = fixed.acidity))+
@@ -82,7 +87,7 @@ p4 <- ggplot(data = rdw, aes(x = pH))+
 grid.arrange(p1, p2, p3, p4, ncol = 1)
 ```
 
-From the above plots, we can see that fixed.acidity has more of a positively skewed distribution, it probably may be bimodal. The volatile.acidity variable also looks like a skewed distribution, though we may want to look at it further. There isn't much to be infered from the citric.acid plot, and the pH plot has a uniform distribution with most values concentrated between 3.0 and 3.5. That's quite accurate as wines are mildly acidic. The acidity adds to it's crispiness. 
+From the above plots, we can see that fixed.acidity has more of a positively skewed distribution, it probably may be bimodal. The volatile.acidity variable also looks like a skewed distribution, though we may want to look at it further. There isn't much to be infered from the citric.acid plot, and the pH plot has a uniform distribution with most values concentrated between 3.0 and 3.5. That's quite accurate as wines are mildly acidic. The acidity adds to it's crispiness.
 
 I would like to see some x-axis transformations in citric.acid plot to extract any available information.
 
@@ -92,7 +97,9 @@ ggplot(data = rdw, aes(x = citric.acid))+
   scale_x_sqrt()
 ```
 
-After a sqrt tranformation on x-axis, I can see that although there isn't relation visible, but many of the values have zero amount of citric acid in them. This probably depends on the flavor of the wine, and probably affects the quality.
+After a sqrt tranformation on x-axis, I can see that although there isn't 
+relation visible, but many of the values have zero amount of citric acid in them. 
+This probably depends on the flavor of the wine, and probably affects the quality.
 
 ###Chemicals
 Let's check for presence of chemicals such as chlorides, sulphates & sulfur dioxide.
@@ -106,7 +113,9 @@ c2 <- ggplot(data = rdw, aes(x = sulphates))+
 grid.arrange(c1, c2, ncol = 1)
 ```
 
-Both these curves show skewed distribution, and a large number of outliers. It's possible that these abnormal values may distinguish the quality/class of the wine, as presence of long tailed data is visible. 
+Both these curves show skewed distribution, and a large number of outliers.
+It's possible that these abnormal values may distinguish the quality/class of 
+the wine, as presence of long tailed data is visible.
 
 ```{r echo=FALSE, message=FALSE}
 s1 <- ggplot(data = rdw, aes(x = free.sulfur.dioxide))+
@@ -119,7 +128,9 @@ s2 <- ggplot(data = rdw, aes(x = total.sulfur.dioxide))+
 grid.arrange(s1, s2, heights = unit(1, 'npc'))
 ```
 
-Both these variables show somewhat similar skewness. The free sulphur dioxide amount peaks at two places, first at 7 which is the median, and then around 9-10. Both have a small number of outliers that have been omitted from the visualizations.
+Both these variables show somewhat similar skewness. The free sulphur dioxide 
+amount peaks at two places, first at 7 which is the median, and then around 9-10. 
+Both have a small number of outliers that have been omitted from the visualizations.
 
 ###Other Parameters
 
@@ -138,39 +149,68 @@ o3 <- ggplot(data = rdw, aes(x = alcohol))+
 grid.arrange(o1, o2, o3, ncol = 1)
 ```
 
-Residual sugar has very high outliers, while the 75th percentile is at 2.60 only. The distribution is positively skewed with median around 2.20. Density seems to be a uniform distribution, which can hence be a deciding factor in quality. Alcohol percentages are mostly positively skewed.
+Residual sugar has very high outliers, while the 75th percentile is at 2.60 only. 
+The distribution is positively skewed with median around 2.20. Density seems to be
+a uniform distribution, which can hence be a deciding factor in quality. Alcohol 
+percentages are mostly positively skewed.
 
 # Univariate Analysis
 
-> **Tip**: Now that you've completed your univariate explorations, it's time to
-reflect on and summarize what you've found. Use the questions below to help you
-gather your observations and add your own if you have other thoughts!
+### Structure of the Dataset
 
-### What is the structure of your dataset?
+The Red Wine Dataset has 1599 rows and 13 columns. I've added a new column called 'class' 
+based on the quality ratings. Also, both class and Quality have been transformed into factor variables for easy modelling. Final number of variables is 14.
 
-### What is/are the main feature(s) of interest in your dataset?
+### Feature(s) of Interest
 
-### What other features in the dataset do you think will help support your \
-investigation into your feature(s) of interest?
+Most data points belong to the **normal** class of wines. This is either a good indication, or implies that data is incomplete. Analysis of multiple variables with quality may clear this up further. Although I'm no wine expert, a predictive model may help in determining what affects
+Quality of a Red wine, which is the main objective of this analysis.
 
-### Did you create any new variables from existing variables in the dataset?
+### Supporting Points of Interest
 
-### Of the features you investigated, were there any unusual distributions? \
-Did you perform any operations on the data to tidy, adjust, or change the form \
-of the data? If so, why did you do this?
+From the intial analysis it seems that variables such as factors related to acidity and pH may be some deciding factors for quality, since the taste is affected by these. By the same clause, chlorides and residual sugars may also affect the perception of quality.  
+
+### Unusual Observations
+
+1. The plot of citric.acid qauntity seemed to have no particular relationship going on. A large number of values were seemingly zero, which is either an indication of quality, or incomplete data. To better visualize it, I used the square root transformation, because log transformation would have lead to non-finite values.
+
+2. Other variables such as chlorides, sulphates and residual sugar have many outliers. It intrigues me if these actually propose a measure of quality or are just dirty values.
 
 
 # Bivariate Plots Section
 
-> **Tip**: Based on what you saw in the univariate plots, what relationships
-between variables might be interesting to look at in this section? Don't limit
-yourself to relationships between a main output feature and one of the
-supporting variables. Try to look at relationships between supporting variables
-as well.
+Although I have some bivariate analyses in mind, I will start by creating a correlation plot to double check my thoughts.
 
-```{r echo=FALSE, Bivariate_Plots}
+```{r echo=FALSE, message=FALSE Bivariate_Plots}
 
+# Creating an all numeric df
+rdw_new <- rdw[, 2:13]
+rdw_new$quality <- as.numeric(rdw_new$quality)
+# Finding correlation matrix
+rdw_cor <- cor(x = rdw_new, method = 'pearson')
+# Plotting correlation plot
+col <- colorRampPalette(c("#4799d3", "#9ac3e0", "#FFFFFF", "#aaffc8", "#33ce6a"))
+
+corrplot(rdw_cor, method="color", col = col(200), order="original", 
+         addCoef.col = "black",
+         tl.col="black", tl.srt = 90, tl.cex = 0.9, # Variable Labels
+         number.cex = 0.7, number.digits = 2,       # Correlation Coeffs.
+         cl.cex = 0.7, cl.align.text = "c",         # Color Label Text
+         diag=TRUE)
 ```
+
+From the above map, the following are some of the facts that intrigue me:
+
+1. Quality is **highly correlated** with **Alcohol and Volatile Acidity**, although in    opposite manners.
+
+2. Fixed acidity seems to be **highly correlated** with **citric acid, density and       pH**.
+
+3. pH seems to be **positively correlated** with **Volatile Acidity**. I assumed it to    be the other way round, i.e. similar to fixed acidity.
+
+4. Sulphates and Chlorides seem to be **moderately positively correlated**. This may     not lead to an actual relationship though between the two chemicals specifically,     but it may be the case that they are present in proportionate amounts in good         quality wines.
+
+####Let's look at some plots to verify our above hypothesis.
+
 
 # Bivariate Analysis
 
