@@ -237,19 +237,94 @@ This graph shows that though the majority of **normal**(5 & 6) quality red wines
 Taking a look at volatile.acidity vs Quality, which is expected to have a high negative correlation.
 
 ```{r, echo=FALSE}
-ggplot(aes(x = quality, y = volatile.acidity), data = rdw)+
-  geom_boxplot(alpha = 1/4, color = "#031b4c")+
-  geom_jitter(alpha = 1/4, color = "#37768e")+
-  stat_summary(geom = "point", fun.y = "mean", shape = 3, size = 4, color = "red")
+ggplot(aes(x = quality, y = volatile.acidity, group = 1), data = rdw)+
+  geom_jitter(alpha = 1/3, color = "#37768e")+
+  stat_summary(geom = "line", fun.y = "quantile", fun.args = list(probs = 0.97),
+               color = "red", linetype = 2)+
+  stat_summary(geom = "line", fun.y = "median", color = "black")+
+  stat_summary(geom = "line", fun.y = "quantile", fun.args = list(probs = 0.03),
+               color = "red", linetype = 2)
 ```
 
-From the median and mean points, we clearly see a declining relationship with quality. And normal quality values are packed mostly in the 0.2 to 0.8 range. Bear in mind that this is a jitter plot, with noise. Let's make some other line plots.
+From the median, 97th percentile, and the 3rd percentile, we clearly see a declining relationship with quality. And normal quality values are packed mostly in the 0.2 to 0.8 range.
+
+Let's have a look at fixed.acidity and variables correlated with it.
 
 ```{r echo=FALSE}
-ggplot(aes(y = volatile.acidity, x = quality), data = rdw)+
-  geom_jitter()
+ggplot(aes(x = fixed.acidity, y = citric.acid), data = rdw)+
+  geom_jitter(color = "#37768e", alpha = 1/2)+
+  geom_smooth(method = "lm", color = "#ce1644")
 ```
 
+Fixed acidity definitely increases with higher amounts of Citric acid. Probably because citric acid may be the main constituent of acidic nature of the wine. Volatile acidity has a negative relation, so we might need to investigate these together in Multivariate Analyses section.
+
+Let's check the relationship between fixed.acidity and density.
+
+```{r echo=FALSE, message=FALSE}
+ggplot(aes(x = fixed.acidity, y = density), data = rdw)+
+  geom_point(color = "#163470", alpha = 1/4)+
+  geom_smooth(method = "lm", color = "#ce1644")
+
+```
+
+Clearly a positive relationship between these two factors. Let's see if density affects quality majorly.
+
+```{r}
+ggplot(aes(x = quality, y = density), data = rdw)+
+ geom_boxplot(alpha = 1/3, color = "#2e70b2", fill = "#6fa9e2")+
+  stat_summary(fun.y = mean, color = "red", geom = "point", shape = 4, size = 3)
+```
+
+This plot doesn't really lead to any new conclusions. Density isn't affective in determining quality.
+
+What about acidity vs pH? Correlation coefficient for fixed.acidity is negative, which is to be expected as higher acidity implies lower pH Value. Let's check for volatile.acidity and citric.acid. We will keep the x axis in log scale to better view the data.
+
+```{r echo=FALSE, message=FALSE}
+# Fixed acidity vs pH
+ggplot(aes(x = fixed.acidity, y = pH), data = rdw)+
+  scale_x_log10()+
+  geom_point(color = "#163470", alpha = 1/4)+
+  geom_smooth(method = "lm", color = "#ce1644")
+
+# Volatile acidity vs pH
+ggplot(aes(x = volatile.acidity, y = pH), data = rdw)+
+  scale_x_log10()+
+  geom_point(color = "#163470", alpha = 1/4)+
+  geom_smooth(method = "lm", color = "#ce1644")
+
+# Citric acid vs pH
+ggplot(aes(x = citric.acid, y = pH), data = subset(rdw, rdw$citric.acid > 0))+
+  scale_x_log10()+
+  geom_point(color = "#163470", alpha = 1/4)+
+  geom_smooth(method = "lm", color = "#ce1644")
+```
+
+Clearly, volatile acidity has a positive relationship with pH as opposed to fixed.acidity and citric.acid. This finding is crucial, and will be evaluated further in the next section.
+
+Let's have a look at Sulphates and Chlorides.
+
+```{r echo=FALSE, message=FALSE}
+ggplot(aes(x = sulphates, y = chlorides), data = rdw)+
+  geom_line(color = "#163470")+
+  geom_smooth(method = "lm", color = "#ce1644")
+
+```
+
+There is a basic linear relationship between the two, but a lot of outliers do exist. Let's compare them with Quality.
+
+```{r echo =FALSE, message=FALSE}
+# Sulphates vs Quality
+ggplot(aes(x = quality, y = sulphates), data = rdw)+
+  geom_boxplot(alpha = 1/3)+
+  stat_summary(geom = "point", fun.y = mean, color = "red", shape = 3)
+
+# Chlorides vs Quality
+ggplot(aes(x = quality, y = chlorides), data = rdw)+
+  geom_boxplot(alpha = 1/3)+
+  stat_summary(geom = "point", fun.y = mean, color = "red", shape = 3)
+```
+
+Though for chlorides, the distribution across quality remains more or less constant,  we can see a large number of outliers for both chlorides and sulphates in the normal (5 & 6) quality wines.
 
 # Bivariate Analysis
 
