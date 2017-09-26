@@ -35,8 +35,16 @@ rdw$class <- factor(ifelse(rdw$quality < 5, 'poor',
                               ifelse(rdw$quality < 7, 'normal', 'exceptional')
                               ))
 
-rdw$class <- ordered(rdw$class, levels = c('poor','normal','exceptional'))
+rdw$class <- ordered(rdw$class, levels = c('poor', 'normal', 'exceptional'))
 ```
+
+I have created a new variable **class** here, which is based on quality ratings. It has been divided as follows:
+
+* *poor* : Quality rating 3 and 4
+
+* *normal* : Quality rating 5 and 6
+
+* *exceptional* : Quality rating 7 and 8
 
 ## Structure and summary of the Dataframe
 
@@ -179,8 +187,9 @@ percentages are mostly positively skewed.
 ### Structure of the Dataset
 
 The Red Wine Dataset has 1599 rows and 13 columns. I've added a new column called 
-'class' based on the quality ratings. Also, both class and Quality have been transformed
-into factor variables for easy analysis. Final number of variables is 14.
+'class' based on the quality ratings. This is to help in distinguishing various trends between chemical properties across classes, as sometimes sensory perception of two people may not exactly mean the same thing. So this type of grouping helps to approximate the trends across adjacent ratings.
+
+Also, both class and Quality have been transformed into factor variables for easy analysis. Final number of variables is 14.
 
 ### Feature(s) of Interest
 
@@ -216,7 +225,7 @@ correlation plot to double check my thoughts.
 ```{r echo=FALSE, message=FALSE, Bivariate_Plots}
 
 # Creating an all numeric df
-rdw_new <- rdw[, 2:13]
+rdw_new <- select(rdw, -X, -class)
 rdw_new$quality <- as.numeric(rdw_new$quality)
 # Finding correlation matrix
 rdw_cor <- cor(x = rdw_new, method = 'pearson')
@@ -270,7 +279,7 @@ table(rdw.alcohol.ranges)
 ```{r echo=FALSE}
 # Percentage wise Quality distribution
 qplot(x=rdw.alcohol.ranges, data = rdw, fill = ordered(quality, c(8,7,6,5,4,3)))+
-  scale_fill_brewer(type = "seq")
+  scale_fill_brewer(type = "seq", direction = -1)
 ```
 
 This graph shows that though the majority of **normal**(5 & 6) quality red wines 
@@ -435,7 +444,7 @@ is between pH and fixed.acidity. The r value is **-0.68**.
 ```{r echo=FALSE, Multivariate_Plots}
 #volatile acidity vs total acidity faceted by quality
 ggplot(aes(x = volatile.acidity, y = pH), data = rdw)+
-  scale_x_log10()+
+  scale_x_log10(breaks = c(0, 0.2, 0.4, 0.8, 1.2))+
   geom_jitter(alpha = 1/4, color = "#3b67dd")+
   geom_smooth(method= "lm", color="red")+
   facet_wrap(~class)
@@ -472,13 +481,15 @@ ggplot(aes(x = citric.acid, y = pH, color = quality), data = rdw)+
   geom_jitter(alpha = 1/4)+
   geom_smooth(method = "lm")+
   facet_wrap(~class)+
-  scale_color_brewer(type = "seq")
+  scale_color_brewer(type = "seq")+
+    theme_dark()
 
 ggplot(aes(y = citric.acid, x = fixed.acidity, color = quality), data = rdw)+
-  geom_jitter(alpha = 1/4)+
+  geom_jitter(alpha = 1/2)+
   geom_smooth(method = "lm")+
   facet_wrap(~class)+
-  scale_color_brewer(type = "seq")
+  scale_color_brewer(type = "seq")+
+  theme_dark()
 ```
 
 Clearly, fixed acidity is directly correlated with amount of citric acid. And it 
@@ -522,27 +533,31 @@ do feel that a larger dataset would've made them concrete.*
 
 ### Plot One
 ```{r echo=FALSE, Plot_One}
-col1 <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
-corrplot(rdw_cor, method="color", col = col1(200), order="original", 
-         addCoef.col = "black",
-         title = "Correlation Plot For Bivariate Analysis",
-         tl.col="black", tl.srt = 45, tl.cex = 0.8, # Variable Labels
-         number.cex = 0.6, number.digits = 2,       # Correlation Coeffs.
-         cl.cex = 0.7, cl.align.text = "c",         # Color Label Text
-         mar = c(1,0,2,0),
-         diag=TRUE)
+# Sulphates vs Quality
+ggplot(aes(x = quality, y = sulphates, color = quality), data = rdw)+
+  geom_boxplot(alpha = 0.5)+
+  stat_summary(geom = "point", fun.y = mean, color = "red", shape = 3)+
+  scale_color_brewer(type = "seq")+
+  theme_dark()+
+  labs(title = "Sulphate Quantity vs Quality", 
+       x = "Quality Rating", 
+       y = "Potassium Sulphate (g/dm^3)")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Alcohols and sulphates dsitributed by class
+ggplot(aes(x = alcohol, y = sulphates), data = rdw)+
+  geom_jitter(alpha = 1/4, color = "#3b67dd")+
+  geom_smooth(method = "lm", se = FALSE, color = "#d6224c")+
+  facet_wrap(~class)+
+  labs(title = "Alcohol vs Sulphates (per Quality Class)", 
+       x = "Alcohol (% by Volume)", y = "Potassium Sulphate (gm/dm^3)")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 ### Description One
 
-This plot is a correlation plot between the various variables from the dataset. I choose
-this plot because, as a learning data scientist as well as a science graduate, this
-immediately gave me an idea of what factors may be influencing what, even though I lack the
-knowledge of anything Wine related. For example, I could easily see that alcohol is
-negatively correlated with density, as alcohols have lesser densities than water. 
-Similarly for fixed.acidity, citric.acid and pH. *What I couldn't get from this was the*
-*inverse relation of volatile acidity with pH and hence quality, which I explored in depth*
-*later on.* 
+These two plots together quite reasonably show the importance of sulphates in Wine Quality. The first plot has a clear **upward trend in Potassium sulphate** amount across quality. *The mean moves mostly along the median line.* This established this factor as an important ingredient. The second plot shows how crucial a role does Sulphate amount play across classes, along with the most prominent ingredient, alcohol. It's clear that for poor quality wines, the sulphate amount drops down, for normal quality wines, it shows an increasing trend with in increase in alcohol levels, but for exceptional classes, it doesn't really make a significant difference. At higher alcohol levels, a bare threshold amount of sulphate compounds is sufficient.
+
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
@@ -560,12 +575,12 @@ ggplot(aes(x = quality, y = volatile.acidity, group = 1), data = rdw)+
 
 #volatile acidity vs total acidity faceted by quality
 ggplot(aes(x = volatile.acidity, y = pH), data = rdw)+
-  scale_x_log10()+
+  scale_x_log10(breaks = c(0, 0.2, 0.4, 0.8, 1.2 ))+
   geom_jitter(alpha = 1/4, color = "#3b67dd")+
   geom_smooth(method= "lm", color="#d6224c", se = FALSE)+
   facet_wrap(~class)+
-  labs(title = "Volatile Acidity vs pH (per Quality Class)", y = "pH", 
-       x = "Volatile Acidity (log10 scale)")+
+  labs(title = "Volatile Acidity (log10) vs pH (per Quality Class)", y = "pH", 
+       x = "Volatile Acidity (g/dm^3)")+
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
@@ -574,7 +589,7 @@ ggplot(aes(x = volatile.acidity, y = pH), data = rdw)+
 
 These two plots together serve the purpose of clarifying the mystery behind volatile
 acidity. After I confirmed this relationship through these charts, I was sure about 
-onething that Volatile Acidity (VA) is actually not contributing to the acidity of the wine!
+one thing that Volatile Acidity (VA) is actually not contributing to the acidity of the wine!
 And after searching the internet, I found out that increased levels of 
 **acetic acid, the source of volatile acidity**, implies overfermentation, which 
 spoils the wine. It's undesireable! 
@@ -587,9 +602,10 @@ ggplot(aes(y = citric.acid, x = fixed.acidity, color = quality), data = rdw)+
   geom_jitter(alpha = 1/4)+
   geom_smooth(method = "lm", se = FALSE)+
   facet_wrap(~class)+
+  theme_dark()+
   scale_color_brewer(type = "seq")+
    labs(title = "Fixed Acidity vs Citric Acid", y = "Citric Acid (g/dm^3)", 
-       x = "Fixed Acidity", color = "Quality")+
+       x = "Fixed Acidity (g/dm^3)", color = "Quality")+
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
