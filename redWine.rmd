@@ -47,6 +47,9 @@ str(rdw)
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 summary(rdw)
 ```
+
+-----
+
 # Univariate Plots Section
 
 As a start, I see from the above statistics that there are a lot more number of 
@@ -194,14 +197,16 @@ of quality.
 
 ### Unusual Observations
 
-1. The plot of citric.acid qauntity seemed to have no particular relationship going on. 
-  A large number of values were seemingly zero, which is either an indication of quality, 
-  or incomplete data. To better visualize it, I used the square root transformation, 
-  because log transformation would have lead to non-finite values.
+1. The plot of citric.acid qauntity seemed to have no particular relationship going
+   on. A large number of values were seemingly zero, which is either an indication of
+   quality, or incomplete data. To better visualize it, I used the square root
+   transformation, because log transformation would have lead to non-finite values.
 
-2. Other variables such as chlorides, sulphates and residual sugar have many 
-  outliers. It intrigues me if these actually propose a measure of quality or are just dirty   values.
+2. Other variables such as chlorides, sulphates and residual sugar have many
+   outliers. It intrigues me if these actually propose a measure of quality or are
+   just dirty values.
 
+------
 
 # Bivariate Plots Section
 
@@ -423,6 +428,8 @@ the dataset.
 The strongest relationship I found, measured on the basis of correlation coefficient, 
 is between pH and fixed.acidity. The r value is **-0.68**.
 
+------
+
 # Multivariate Plots Section
 
 ```{r echo=FALSE, Multivariate_Plots}
@@ -459,17 +466,19 @@ Exceptional quality wines tend to have larger quantities of sulphates and alcoho
 relatively. It could be that higher levels of alcohol content coupled with the same
 amount of sulphates may also be a factor here.
 
-```{r}
+```{r echo=FALSE}
 #Citric acid and pH across class and quality
 ggplot(aes(x = citric.acid, y = pH, color = quality), data = rdw)+
   geom_jitter(alpha = 1/4)+
   geom_smooth(method = "lm")+
-  facet_wrap(~class)
+  facet_wrap(~class)+
+  scale_color_brewer(type = "seq")
 
 ggplot(aes(y = citric.acid, x = fixed.acidity, color = quality), data = rdw)+
   geom_jitter(alpha = 1/4)+
   geom_smooth(method = "lm")+
-  facet_wrap(~class)
+  facet_wrap(~class)+
+  scale_color_brewer(type = "seq")
 ```
 
 Clearly, fixed acidity is directly correlated with amount of citric acid. And it 
@@ -478,7 +487,7 @@ leads to lower pH values which aid to better ratings.
 Let's once check again the correlation coefficients of the above analysed variables
 with respect to quality only.
 
-```{r}
+```{r echo=FALSE}
 #Subsetting data to calculate r vs quality
 qual_factors <- select(rdw, alcohol, citric.acid, volatile.acidity, sulphates)
 
@@ -507,6 +516,7 @@ The final analysis yieldid a significant relationship between **Quality and **
 do feel that a larger dataset would've made them concrete.*
 
 ------
+
 
 # Final Plots and Summary
 
@@ -540,10 +550,10 @@ Similarly for fixed.acidity, citric.acid and pH. *What I couldn't get from this 
 ggplot(aes(x = quality, y = volatile.acidity, group = 1), data = rdw)+
   geom_jitter(alpha = 1/3, color = "#3b67dd")+
   stat_summary(geom = "line", fun.y = "quantile", fun.args = list(probs = 0.97),
-               color = "red", linetype = 2)+
+               color = "#d6224c", linetype = 2)+
   stat_summary(geom = "line", fun.y = "median", color = "black")+
   stat_summary(geom = "line", fun.y = "quantile", fun.args = list(probs = 0.03),
-               color = "red", linetype = 2)+
+               color = "#d6224c", linetype = 2)+
   labs(title = " Quality vs Volatile Acidity", x = "Quality Rating", 
        y = "Volatile Acidity (gm/dm^3)")+
   theme(plot.title = element_text(hjust = 0.5))
@@ -552,7 +562,7 @@ ggplot(aes(x = quality, y = volatile.acidity, group = 1), data = rdw)+
 ggplot(aes(x = volatile.acidity, y = pH), data = rdw)+
   scale_x_log10()+
   geom_jitter(alpha = 1/4, color = "#3b67dd")+
-  geom_smooth(method= "lm", color="red")+
+  geom_smooth(method= "lm", color="#d6224c", se = FALSE)+
   facet_wrap(~class)+
   labs(title = "Volatile Acidity vs pH (per Quality Class)", y = "pH", 
        x = "Volatile Acidity (log10 scale)")+
@@ -586,10 +596,42 @@ ggplot(aes(y = citric.acid, x = fixed.acidity, color = quality), data = rdw)+
 
 ### Description Three
 
-Though not exactly giving a relationship towards quality, this graph quite clearly depicts
-the linear relationship between fixed acidity and citric acid. Fixed acidity is composed of
-**tartaric acid** in majority, and it seems that citric acid is added in proportion, to
-enhance the fruitiness of the wine.
+Though not exactly giving a relationship towards quality, this graph quite clearly
+depicts the linear relationship between fixed acidity and **citric acid**. 
+Fixed acidity is composed of **tartaric acid** in majority, and it seems that 
+citric acid is added in proportion, to enhance the fruitiness of the wine.
+
 ------
 
+
 # Reflection
+
+Having no previous perceptory or scientific knowledge of Red wines, it was initially
+difficult for me to get a feel of the provided information. After the initial
+analysis, it got cleared up to a certain degree. I approached this analysis with the
+methodology of generating some conclusions through my analysis and then verifying them
+scientifically. This strategy worked in my favour. 
+
+Throughout this analysis, I did feel that the outcomes were being hindered by the
+amount of data. The dataset contains most values in the normal quality class, which
+makes it biased to a certain extent. I couldn't decide if modelling with such a
+dataset would yield conclusive results or not.
+
+The main noteworthy finding for me was the presence of Volatile Acidity in Red Wines. 
+When I saw the declining trend with Quality in the Univariate section, it intrigued me
+to see reversal in trends between volatile acidity and fixed acidity. Through further
+analysis in Bivariate and Multivariate sections, I strengthened this hypothesis. And
+the scientific reasoning for it confirmed that higher levels of Volatile acidity are
+not preferred and it's increase is aided by higher pH values.
+
+I do wish that this dataset was larger in size and without skewed data for a single
+quality measure, for effective modelling purposes. Although I have never tried wine,
+I also believe that these quality ratings may be subjective, and dependent on the
+preferences of the ones grading them. So, for a better analysis, it would be prudent
+to have multiple, universally agreed on parameters, to provide a score for. These can
+be sweetness, sourness, density (ordered levels), freshness etc.. This, would enable
+us data scientists to make a more thorough and exhaustive analysis, and create a more
+robust model for predicting the quality of Red Wine. 
+
+
+-----------

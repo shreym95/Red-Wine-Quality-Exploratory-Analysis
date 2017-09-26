@@ -2,3 +2,5 @@ http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
 http://ggplot2.tidyverse.org/reference/stat_summary.html
 http://waterhouse.ucdavis.edu/whats-in-wine/fixed-acidity
 http://www.wineperspective.com/wine-acidity/
+https://en.wikipedia.org/wiki/Red_wine
+https://stackoverflow.com
